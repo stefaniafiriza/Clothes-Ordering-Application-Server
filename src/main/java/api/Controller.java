@@ -1,6 +1,9 @@
 package api;
 
 import database.Manager;
+import database.Utils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -8,5 +11,31 @@ public class Controller {
     Manager man;
     public Controller(){
         this.man = new Manager();
+    }
+
+    @GetMapping("/api/verifyUser")
+    public String verifyUser(@RequestParam String key, @RequestParam String username){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        if(this.man.verifyUser(username))
+            return Utils.createResult("successful", "User found");
+        return  Utils.createResult("error", "User not found");
+    }
+
+    @GetMapping("/api/login")
+    public String login(@RequestParam String key, @RequestParam String username, @RequestParam String password){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.login(username,password);
+    }
+
+    @GetMapping("/api/register")
+    public String register(@RequestParam String key,@RequestParam String username, @RequestParam String password, @RequestParam String name,@RequestParam String email, @RequestParam String type, @RequestParam String phoneNumber,String codeManager){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.register(username,password,name,email,type,phoneNumber,codeManager);
     }
 }
