@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.LinkedList;
 import java.util.Random;
 
 public class Manager {
@@ -139,6 +140,7 @@ public class Manager {
         }
 
     }
+
     public String getProducts() {
         while (!this.connected) {
             this.connect();
@@ -151,6 +153,7 @@ public class Manager {
             return Utils.createResult("error", "Malformed Query");
         }
     }
+
     public String search(String name) {
         while (!this.connected) {
             this.connect();
@@ -159,6 +162,90 @@ public class Manager {
             String sql = String.format("SELECT * FROM \"Products\" WHERE \"Name\" LIKE %%%s%%", escapeString(name));
             ResultSet rs = stmt.executeQuery(sql);
             return Utils.convertToJSON(rs);
+        } catch (Exception e) {
+            return Utils.createResult("error", "Malformed Query");
+        }
+    }
+
+    public String createShoppingCartID(String userId) {
+
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String id = generateID("ShoppingBasket", "Id").toString();
+            String sql = String.format("UPDATE \"Users\"\n" +
+                    "\tSET \"ShoppingCartId\"=%s\n" +
+                    "\tWHERE \"Id\"='%s';", id, escapeString(userId));
+            stmt.executeUpdate(sql);
+            c.commit();
+            sql = String.format("INSERT INTO \"ShoppingBasket\"(\"Id\", \"UserId\") VALUES(%s, %s)", id, userId);
+            stmt.executeUpdate(sql);
+            c.commit();
+            return Utils.createResult("successful", "Created ShoppingCartID");
+        } catch (Exception e) {
+            return Utils.createResult("error", "Unable to update and create ShoppingCartID");
+        }
+    }
+
+    public String addToCart(String cartID, String productID, String amount) {
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String sql = String.format("UPDATE \"ShoppingBasket\"\n" +
+                    "\tSET \"Cart\"=\"Cart\" || Cast(%s as bigint), \"Ammounts\"= \"Ammounts\" || Cast(%s as bigint)\n" +
+                    "\tWHERE \"Id\"=%s;", productID, amount, cartID);
+            stmt.executeUpdate(sql);
+            c.commit();
+            return Utils.createResult("successful", String.format("Added %s to the shopping cart %s", productID, cartID));
+        } catch (Exception e) {
+            return Utils.createResult("error", "Malformed Query");
+        }
+    }
+
+    private String linkedListToString(LinkedList<BigInteger> list){
+        StringBuilder str = new StringBuilder();
+        for (BigInteger bi : list) {
+            str.append(bi.toString()).append(",");
+        }
+        str.deleteCharAt(str.length() - 1);
+        return str.toString();
+    }
+
+    public String removeFromCart(String cartID, String productID, String amount) {
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String sql = String.format("SELECT * FROM \"ShoppingBasket\" WHERE \"Id\"=%s", cartID);
+            ResultSet rs = stmt.executeQuery(sql);
+            if (rs.next()) {
+                LinkedList<BigInteger> cart = (LinkedList<BigInteger>) rs.getArray("Cart").getArray();
+                LinkedList<BigInteger> amounts = (LinkedList<BigInteger>) rs.getArray("Ammounts").getArray();
+                int index;
+                for (index = 0; index < cart.size() + 1; index++) {
+                    if (index == cart.size())
+                        return Utils.createResult("error", "Could not find the product in the cart.");
+                    if (cart.get(index).toString().equals(productID))
+                        break;
+                }
+                BigInteger newAmount = amounts.get(index).subtract(new BigInteger(amount)) ;
+                if (newAmount.compareTo(BigInteger.valueOf(0)) <= 0) {
+                    amounts.remove(index);
+                    cart.remove(index);
+                }else{
+                    amounts.set(index, newAmount);
+                }
+                sql = String.format("UPDATE \"ShoppingBasket\"\n" +
+                        "\tSET \"Cart\"={%s}, \"Ammounts\"= {%s}\n" +
+                        "\tWHERE \"Id\"=%s;", linkedListToString(cart), linkedListToString(amounts), cartID);
+
+                stmt.executeUpdate(sql);
+                c.commit();
+                return Utils.createResult("successful", String.format("Removed %s to the shopping cart %s", productID, cartID));
+            }
+            return Utils.createResult("error", String.format("Product %s is not in the shopping cart %s", productID, cartID));
         } catch (Exception e) {
             return Utils.createResult("error", "Malformed Query");
         }
