@@ -77,4 +77,12 @@ public class Controller {
         }
         return this.man.addToCart(cartID, productID, amount);
     }
+
+    @GetMapping("/api/removeFromCart")
+    public String removeFromCart(@RequestParam String key,@RequestParam String cartID, @RequestParam String productID, @RequestParam String amount){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.removeFromCart(cartID, productID, amount);
+    }
 }
