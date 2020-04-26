@@ -46,5 +46,11 @@ public class Controller {
         }
         return this.man.addProduct(name, type, size, price, stock, description);
     }
-
+    @GetMapping("/api/getProducts")
+    public String getProducts(@RequestParam String key){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.getProducts();
+    }
 }

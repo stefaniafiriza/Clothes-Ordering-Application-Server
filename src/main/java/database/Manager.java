@@ -139,4 +139,16 @@ public class Manager {
         }
 
     }
+    public String getProducts() {
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String sql = "SELECT * FROM \"PRODUCTS\";";
+            ResultSet rs = stmt.executeQuery(sql);
+            return Utils.convertToJSON(rs);
+        } catch (Exception e) {
+            return Utils.createResult("error", "Malformed Query");
+        }
+    }
 }
