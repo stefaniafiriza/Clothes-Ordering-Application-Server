@@ -69,4 +69,12 @@ public class Controller {
         }
         return this.man.createShoppingCartID(userID);
     }
+
+    @GetMapping("/api/addToCart")
+    public String addToCart(@RequestParam String key,@RequestParam String cartID, @RequestParam String productID, @RequestParam String amount){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.addToCart(cartID, productID, amount);
+    }
 }
