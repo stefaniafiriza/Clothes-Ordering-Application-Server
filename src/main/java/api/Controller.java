@@ -30,4 +30,12 @@ public class Controller {
         }
         return this.man.login(username,password);
     }
+
+    @GetMapping("/api/register")
+    public String register(@RequestParam String key,@RequestParam String username, @RequestParam String password, @RequestParam String name,@RequestParam String email, @RequestParam String type, @RequestParam String phoneNumber,String codeManager){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.register(username,password,name,email,type,phoneNumber,codeManager);
+    }
 }
