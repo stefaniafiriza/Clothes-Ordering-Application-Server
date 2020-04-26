@@ -163,4 +163,25 @@ public class Manager {
             return Utils.createResult("error", "Malformed Query");
         }
     }
+
+    public String createShoppingCartID(String userId) {
+
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String id = generateID("ShoppingBasket", "Id").toString();
+            String sql = String.format("UPDATE \"Users\"\n" +
+                    "\tSET \"ShoppingCartId\"=%s\n" +
+                    "\tWHERE \"Id\"='%s';", id, escapeString(userId));
+            stmt.executeUpdate(sql);
+            c.commit();
+            sql = String.format("INSERT INTO \"ShoppingBasket\"(\"Id\", \"UserId\") VALUES(%s, %s)", id, userId);
+            stmt.executeUpdate(sql);
+            c.commit();
+            return Utils.createResult("successful", "Created ShoppingCartID");
+        } catch (Exception e) {
+            return Utils.createResult("error", "Unable to update and create ShoppingCartID");
+        }
+    }
 }

@@ -61,4 +61,12 @@ public class Controller {
         }
         return this.man.search(name);
     }
+
+    @GetMapping("/api/createShoppingCartID")
+    public String createShoppingCartID(@RequestParam String key,@RequestParam String userID){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.createShoppingCartID(userID);
+    }
 }
