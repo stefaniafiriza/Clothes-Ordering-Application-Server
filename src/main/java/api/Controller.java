@@ -38,4 +38,27 @@ public class Controller {
         }
         return this.man.register(username,password,name,email,type,phoneNumber,codeManager);
     }
+
+    @GetMapping("/api/addProduct")
+    public String addProduct(@RequestParam String key,@RequestParam String name,@RequestParam String type,@RequestParam String size,@RequestParam String price,@RequestParam String stock,@RequestParam String description){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.addProduct(name, type, size, price, stock, description);
+    }
+    @GetMapping("/api/getProducts")
+    public String getProducts(@RequestParam String key){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.getProducts();
+    }
+
+    @GetMapping("/api/search")
+    public String search(@RequestParam String key,@RequestParam String name){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.search(name);
+    }
 }

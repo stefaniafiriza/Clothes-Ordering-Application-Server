@@ -120,4 +120,47 @@ public class Manager {
         }
         return Utils.createResult("successful", "User registered.");
     }
+
+    public String addProduct(String name, String type, String size, String price, String stock, String description) {
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String id = generateID("Product", "Id").toString();
+            String sql = String.format("INSERT INTO public.\"Product\"(\n" +
+                            "\t\"Id\", \"Name\", \"Type\", \"Size\", \"Price\", \"Stock\", \"Description\")\n" +
+                            "\tVALUES (%s, '%s', '%s', '%s', '%s', '%s', '%s');",
+                    id, escapeString(name), escapeString(type), escapeString(size), escapeString(price), escapeString(stock), escapeString(description));
+            stmt.executeUpdate(sql);
+            c.commit();
+            return Utils.createResult("successful", String.format("%s", id));
+        } catch (Exception e) {
+            return Utils.createResult("error", "Malformed Query");
+        }
+
+    }
+    public String getProducts() {
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String sql = "SELECT * FROM \"PRODUCTS\";";
+            ResultSet rs = stmt.executeQuery(sql);
+            return Utils.convertToJSON(rs);
+        } catch (Exception e) {
+            return Utils.createResult("error", "Malformed Query");
+        }
+    }
+    public String search(String name) {
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String sql = String.format("SELECT * FROM \"Products\" WHERE \"Name\" LIKE %%%s%%", escapeString(name));
+            ResultSet rs = stmt.executeQuery(sql);
+            return Utils.convertToJSON(rs);
+        } catch (Exception e) {
+            return Utils.createResult("error", "Malformed Query");
+        }
+    }
 }
