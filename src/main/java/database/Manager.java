@@ -151,4 +151,16 @@ public class Manager {
             return Utils.createResult("error", "Malformed Query");
         }
     }
+    public String search(String name) {
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String sql = String.format("SELECT * FROM \"Products\" WHERE \"Name\" LIKE %%%s%%", escapeString(name));
+            ResultSet rs = stmt.executeQuery(sql);
+            return Utils.convertToJSON(rs);
+        } catch (Exception e) {
+            return Utils.createResult("error", "Malformed Query");
+        }
+    }
 }

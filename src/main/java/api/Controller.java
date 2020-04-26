@@ -53,4 +53,12 @@ public class Controller {
         }
         return this.man.getProducts();
     }
+
+    @GetMapping("/api/search")
+    public String search(@RequestParam String key,@RequestParam String name){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.search(name);
+    }
 }
