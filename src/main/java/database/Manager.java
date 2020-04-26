@@ -2,6 +2,7 @@ package database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class Manager {
@@ -27,6 +28,23 @@ public class Manager {
             } catch (Exception e) {
                 retry -= 1;
             }
+        }
+    }
+    private String escapeString(String str) {
+        return str.replaceAll("'", "\\'");
+    }
+
+    public boolean verifyUser(String username) {
+        while (!this.connected) {
+
+            this.connect();
+        }
+        try {
+            String sql = "SELECT \"Id\" FROM \"Users\" WHERE \"Username\"='" + escapeString(username) + "';";
+            ResultSet rs = this.stmt.executeQuery(sql);
+            return rs.next();
+        } catch (Exception e) {
+            return false;
         }
     }
 }

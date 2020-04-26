@@ -22,4 +22,13 @@ public class Utils {
             e.printStackTrace();
         }
     }
+    public static String createResult(String type, String result){
+        return"{\n" +
+                "    \"result\":\n" +
+                "    {\n" +
+                String.format("        \"type\":\"%s\",\n",type) +
+                String.format("        \"message\":\"%s\"\n", result) +
+                "    }\n" +
+                "}";
+    }
 }
