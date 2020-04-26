@@ -22,4 +22,12 @@ public class Controller {
             return Utils.createResult("successful", "User found");
         return  Utils.createResult("error", "User not found");
     }
+
+    @GetMapping("/api/login")
+    public String login(@RequestParam String key, @RequestParam String username, @RequestParam String password){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.login(username,password);
+    }
 }

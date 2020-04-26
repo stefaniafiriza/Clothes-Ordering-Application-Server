@@ -47,4 +47,25 @@ public class Manager {
             return false;
         }
     }
+    public String login(String username, String pass) {
+        while (!this.connected) {
+            this.connect();
+        }
+        if (!verifyUser(username)) {
+            return Utils.createResult("error", "User not found");
+        }
+        try {
+            String sql = "SELECT * FROM \"Users\" WHERE \"Username\"='" + escapeString(username) + "';";
+            ResultSet rs = stmt.executeQuery(sql);
+            String user = Utils.convertToJSON(rs);
+            String password = user.substring(0, user.indexOf('{'));
+            user = "{" + user.substring(user.indexOf('{'));
+            if (pass.equals(password)) {
+                return user;
+            }
+            return Utils.createResult("error", "Incorrect password");
+        } catch (Exception e) {
+            return Utils.createResult("error", "Database error");
+        }
+    }
 }
