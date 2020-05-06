@@ -106,7 +106,7 @@ public class Manager {
         if (this.verifyUser(username)) {
             return Utils.createResult("error", "User already exists.");
         }
-        if (!codeManager.equals("") && !verifyManagerCode(codeManager))
+        if (!codeManager.equals("0") && !verifyManagerCode(codeManager))
             return Utils.createResult("error", "Invalid Manager Code.");
         try {
             String sql = String.format("INSERT INTO \"Users\"(\n" +
