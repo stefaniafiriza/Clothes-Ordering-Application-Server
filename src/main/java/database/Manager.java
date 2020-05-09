@@ -4,9 +4,12 @@ import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.Random;
+
+import static database.Utils.convertToJSON;
 
 public class Manager {
     Connection c;
@@ -62,7 +65,7 @@ public class Manager {
         try {
             String sql = "SELECT * FROM \"Users\" WHERE \"Username\"='" + escapeString(username) + "';";
             ResultSet rs = stmt.executeQuery(sql);
-            String user = Utils.convertToJSON(rs);
+            String user = convertToJSON(rs);
             String password = user.substring(0, user.indexOf('{'));
             user = "{" + user.substring(user.indexOf('{'));
             if (pass.equals(password)) {
@@ -117,6 +120,7 @@ public class Manager {
             stmt.executeUpdate(sql);
             c.commit();
         } catch (Exception e) {
+            try{ c.rollback(); }catch (SQLException ignored){}
             return Utils.createResult("error", "Database error");
         }
         return Utils.createResult("successful", "User registered.");
@@ -148,7 +152,7 @@ public class Manager {
         try {
             String sql = "SELECT * FROM \"PRODUCTS\";";
             ResultSet rs = stmt.executeQuery(sql);
-            return Utils.convertToJSON(rs);
+            return convertToJSON(rs);
         } catch (Exception e) {
             return Utils.createResult("error", "Malformed Query");
         }
@@ -161,7 +165,7 @@ public class Manager {
         try {
             String sql = String.format("SELECT * FROM \"Products\" WHERE \"Name\" LIKE %%%s%%", escapeString(name));
             ResultSet rs = stmt.executeQuery(sql);
-            return Utils.convertToJSON(rs);
+            return convertToJSON(rs);
         } catch (Exception e) {
             return Utils.createResult("error", "Malformed Query");
         }
