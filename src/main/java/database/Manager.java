@@ -1,10 +1,7 @@
 package database;
 
 import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -117,6 +114,7 @@ public class Manager {
             stmt.executeUpdate(sql);
             c.commit();
         } catch (Exception e) {
+
             return Utils.createResult("error", "Database error");
         }
         return Utils.createResult("successful", "User registered.");
@@ -280,6 +278,77 @@ public class Manager {
             return Utils.createResult("error", "Malformed Query");
         }
     }
+
+    // Used only in tests
+    public boolean deleteUser(String username){
+        while(!this.connected){
+            this.connect();
+        }
+        try{
+            String sql = "DELETE FROM \"Users\" WHERE \"Username\"='" + escapeString(username) + "';";
+            stmt.executeUpdate(sql);
+            c.commit();
+            return true;
+        }catch (Exception e){
+            try{ c.rollback(); }catch (SQLException ignored){}
+        }
+        return false;
+    }
+    // Used only in tests
+    public boolean deleteProduct(String name){
+        while(!this.connected){
+            this.connect();
+        }
+
+        try {
+            String sql = "DELETE FROM \"Products\" WHERE \"Name\"='" + escapeString(name) + "';";
+            stmt.executeUpdate(sql);
+            c.commit();
+            return true;
+        } catch (Exception e) {
+            try{ c.rollback(); }catch (SQLException ignored){}
+        }
+        return false;
+    }
+
+
+    // Used only in tests
+    public boolean deleteShopingCart(String cartID){
+        while(!this.connected){
+            this.connect();
+        }
+
+        try {
+            String sql = "DELETE FROM \"ShoppingBasket\" WHERE \"Id\"='" + escapeString(cartID) + "';";
+            stmt.executeUpdate(sql);
+            c.commit();
+            return true;
+        } catch (Exception e) {
+            try{ c.rollback(); }catch (SQLException ignored){}
+        }
+        return false;
+    }
+
+
+    // Used only in tests
+    public String getCartID(String username){
+        while(!this.connected){
+            this.connect();
+        }
+
+        try{
+            String sql = String.format("SELECT \"ShoppingCartId\" FROM \"Users\" WHERE \"Username\"='%s';",username);
+            ResultSet rs = stmt.executeQuery(sql);
+            return Utils.convertToJSON(rs);
+
+
+        } catch (SQLException ignored) {
+
+        }
+        return "";
+
+    }
+
     public String getShoppingCart(String cartID) {
         while(!this.connected){
             this.connect();
