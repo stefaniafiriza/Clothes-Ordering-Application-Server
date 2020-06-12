@@ -22,6 +22,10 @@ public class Manager {
     }
 
     public void connect() {
+
+        if(Utils.DatabaseUser.isEmpty() || Utils.DatabasePassword.isEmpty()){
+            Utils.getDatabaseCredentials();
+        }
         int retry = 5;
         while (!connected && retry > 0) {
             try {
@@ -29,7 +33,6 @@ public class Manager {
                 this.c = DriverManager
                         .getConnection("jdbc:postgresql://localhost:5432/ClothesOrderingApp",
                                 Utils.DatabaseUser, Utils.DatabasePassword);
-                this.c.setAutoCommit(false);
                 this.stmt = this.c.createStatement();
                 this.connected = true;
             } catch (Exception e) {
@@ -67,8 +70,8 @@ public class Manager {
             String sql = "SELECT * FROM \"Users\" WHERE \"Username\"='" + escapeString(username) + "';";
             ResultSet rs = stmt.executeQuery(sql);
             String user = convertToJSON(rs);
-            String password = user.substring(0, user.indexOf('{'));
-            user = "{" + user.substring(user.indexOf('{'));
+            String password = user.substring(0, user.indexOf('['));
+            user = user.substring(user.indexOf('[') + 1, user.indexOf(']'));
             if (pass.equals(password)) {
                 return user;
             }
@@ -113,13 +116,12 @@ public class Manager {
         if (!codeManager.equals("") && !verifyManagerCode(codeManager))
             return Utils.createResult("error", "Invalid Manager Code.");
         try {
-            String sql = String.format("INSERT INTO \"Users\"(\n" +
-                            "\t\"Id\", \"Name\", \"Code Manager\", \"Type\", \"Email\", \"PhoneNumber\", \"Username\", \"Password\")\n" +
-                            "\tVALUES (%s, '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
+            String sql = String.format("INSERT INTO \"Users\"(" +
+                            "\"Id\", \"Name\", \"Code Manager\", \"Type\", \"Email\", \"PhoneNumber\", \"Username\", \"Password\")" +
+                            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
                     this.generateID("Users", "Id").toString(), escapeString(name), escapeString(codeManager), escapeString(type),
                     escapeString(email), escapeString(phoneNumber), escapeString(username), escapeString(password));
             stmt.executeUpdate(sql);
-            c.commit();
         } catch (Exception e) {
 
             try{ c.rollback(); }catch (SQLException ignored){}
@@ -139,7 +141,6 @@ public class Manager {
                             "\tVALUES (%s, '%s', '%s', '%s', '%s', '%s', '%s');",
                     id, escapeString(name), escapeString(type), escapeString(size), escapeString(price), escapeString(stock), escapeString(description));
             stmt.executeUpdate(sql);
-            c.commit();
             return Utils.createResult("successful", String.format("%s", id));
         } catch (Exception e) {
             return Utils.createResult("error", "Malformed Query");
@@ -184,10 +185,8 @@ public class Manager {
                     "\tSET \"ShoppingCartId\"=%s\n" +
                     "\tWHERE \"Id\"='%s';", id, escapeString(userId));
             stmt.executeUpdate(sql);
-            c.commit();
             sql = String.format("INSERT INTO \"ShoppingBasket\"(\"Id\", \"UserId\") VALUES(%s, %s)", id, userId);
             stmt.executeUpdate(sql);
-            c.commit();
             return Utils.createResult("successful", "Created ShoppingCartID");
         } catch (Exception e) {
             return Utils.createResult("error", "Unable to update and create ShoppingCartID");
@@ -203,7 +202,6 @@ public class Manager {
                     "\tSET \"Cart\"=\"Cart\" || Cast(%s as bigint), \"Ammounts\"= \"Ammounts\" || Cast(%s as bigint)\n" +
                     "\tWHERE \"Id\"=%s;", productID, amount, cartID);
             stmt.executeUpdate(sql);
-            c.commit();
             return Utils.createResult("successful", String.format("Added %s to the shopping cart %s", productID, cartID));
         } catch (Exception e) {
             return Utils.createResult("error", "Malformed Query");
@@ -248,7 +246,6 @@ public class Manager {
                         "\tWHERE \"Id\"=%s;", linkedListToString(cart), linkedListToString(amounts), cartID);
 
                 stmt.executeUpdate(sql);
-                c.commit();
                 return Utils.createResult("successful", String.format("Removed %s to the shopping cart %s", productID, cartID));
             }
             return Utils.createResult("error", String.format("Product %s is not in the shopping cart %s", productID, cartID));
@@ -275,7 +272,6 @@ public class Manager {
 
             sql = String.format("UPDATE \"Orders\" SET \"Status\" = '%s' WHERE \"Id\"=%s", status+1, orderID);
             stmt.executeUpdate(sql);
-            c.commit();
 
             return Utils.createResult("successful", "Updated order");
         } catch (SQLException | ParseException ignored) {
@@ -319,13 +315,11 @@ public class Manager {
                         cartID, "0", user.toString(), linkedListToString(cart), linkedListToString(amounts));
 
                 stmt.executeUpdate(sql);
-                c.commit();
 
                 sql = String.format("UPDATE \"ShoppingBasket\"\n" +
                         "\tSET \"Cart\"={}, \"Ammounts\"= {}\n" +
                         "\tWHERE \"Id\"=%s;", cartID);
                 stmt.executeUpdate(sql);
-                c.commit();
                 return Utils.createResult("successful", String.format("Ordered %s", cartID));
             }
             return Utils.createResult("error", String.format("Shopping cart %s not found", cartID));
@@ -344,7 +338,6 @@ public class Manager {
         try{
             String sql = "DELETE FROM \"Users\" WHERE \"Username\"='" + escapeString(username) + "';";
             stmt.executeUpdate(sql);
-            c.commit();
             return true;
         }catch (Exception e){
             try{ c.rollback(); }catch (SQLException ignored){}
@@ -358,9 +351,8 @@ public class Manager {
         }
 
         try {
-            String sql = "DELETE FROM \"Products\" WHERE \"Name\"='" + escapeString(name) + "';";
+            String sql = "DELETE FROM \"Product\" WHERE \"Name\"='" + escapeString(name) + "';";
             stmt.executeUpdate(sql);
-            c.commit();
             return true;
         } catch (Exception e) {
             try{ c.rollback(); }catch (SQLException ignored){}
@@ -378,7 +370,6 @@ public class Manager {
         try {
             String sql = "DELETE FROM \"ShoppingBasket\" WHERE \"Id\"='" + escapeString(cartID) + "';";
             stmt.executeUpdate(sql);
-            c.commit();
             return true;
         } catch (Exception e) {
             try{ c.rollback(); }catch (SQLException ignored){}
