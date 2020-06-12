@@ -1,10 +1,17 @@
 package api;
 
 import database.Manager;
+import database.Pictures;
 import database.Utils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @RestController
 public class Controller {
@@ -85,4 +92,25 @@ public class Controller {
         }
         return this.man.removeFromCart(cartID, productID, amount);
     }
+
+    @GetMapping("api/getPicture")
+    public ResponseEntity<InputStreamResource> getPicture(@RequestParam String pictureID, @RequestParam String key){
+        if(!key.equals(Utils.API_KEY)){
+            return ResponseEntity.badRequest().body(null);
+        }
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(Pictures.GetPicture(pictureID));
+
+    }
+
+    @PostMapping("api/uploadPicture")
+    public String uploadPicture(@RequestParam MultipartFile file, @RequestParam String key, @RequestParam String pictureID)
+    {
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+
+        return Pictures.UploadPicture(file, pictureID);
+    }
+
+
 }
