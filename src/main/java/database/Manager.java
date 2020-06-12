@@ -280,5 +280,21 @@ public class Manager {
             return Utils.createResult("error", "Malformed Query");
         }
     }
+    public String getShoppingCart(String cartID) {
+        while(!this.connected){
+            this.connect();
+        }
+
+        try{
+            String sql = String.format("SELECT * FROM \"ShoppingBasket\" WHERE \"Id\"='%s';",cartID);
+            ResultSet rs = stmt.executeQuery(sql);
+            return Utils.convertToJSON(rs);
+
+
+        } catch (SQLException ignored) {
+
+        }
+        return Utils.createResult("error", "Malformed Query");
+    }
 }
 
