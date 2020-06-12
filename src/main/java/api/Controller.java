@@ -85,4 +85,13 @@ public class Controller {
         }
         return this.man.removeFromCart(cartID, productID, amount);
     }
+
+    @GetMapping("/api/order")
+    public String order(@RequestParam String key, @RequestParam String cartID)
+    {
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.order(cartID);
+    }
 }
