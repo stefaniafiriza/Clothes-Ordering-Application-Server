@@ -254,4 +254,51 @@ public class Manager {
             return Utils.createResult("error", "Malformed Query");
         }
     }
+
+    public String order(String cartID){
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String sql = String.format("SELECT * FROM \"ShoppingBasket\" WHERE \"Id\"=%s", cartID);
+            ResultSet rs = stmt.executeQuery(sql);
+            if(rs.next()){
+                LinkedList<BigInteger> cart = (LinkedList<BigInteger>) rs.getArray("Cart").getArray();
+                LinkedList<BigInteger> amounts = (LinkedList<BigInteger>) rs.getArray("Ammounts").getArray();
+                BigInteger user = BigInteger.valueOf(rs.getInt("User"));
+
+                /*
+                * facturare
+                */
+
+                sql = String.format("UPDATE \"ShoppingBasket\"\n" +
+                        "\tSET \"Cart\"={}, \"Ammounts\"= {}\n" +
+                        "\tWHERE \"Id\"=%s;", cartID);
+                stmt.executeUpdate(sql);
+                c.commit();
+                return Utils.createResult("successful", String.format("Ordered %s", cartID));
+            }
+            return Utils.createResult("error", String.format("Shopping cart %s not found", cartID));
+        }
+        catch (Exception e) {
+            return Utils.createResult("error", "Malformed Query");
+        }
+    }
+    public String getShoppingCart(String cartID) {
+        while(!this.connected){
+            this.connect();
+        }
+
+        try{
+            String sql = String.format("SELECT * FROM \"ShoppingBasket\" WHERE \"Id\"='%s';",cartID);
+            ResultSet rs = stmt.executeQuery(sql);
+            return Utils.convertToJSON(rs);
+
+
+        } catch (SQLException ignored) {
+
+        }
+        return Utils.createResult("error", "Malformed Query");
+    }
 }
+
