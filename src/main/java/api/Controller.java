@@ -32,7 +32,7 @@ public class Controller {
     }
 
     @GetMapping("/api/register")
-    public String register(@RequestParam String key,@RequestParam String username, @RequestParam String password, @RequestParam String name,@RequestParam String email, @RequestParam String type, @RequestParam String phoneNumber,String codeManager){
+    public String register(@RequestParam String key,@RequestParam String username, @RequestParam String password, @RequestParam String name,@RequestParam String email, @RequestParam String type, @RequestParam String phoneNumber,@RequestParam String codeManager){
         if(!key.equals(Utils.API_KEY)){
             return Utils.createResult("error", "API Key is not valid.");
         }
