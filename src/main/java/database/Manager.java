@@ -438,5 +438,25 @@ public class Manager {
         }
         return false;
     }
+
+    public String loginWithFacebook(String email, String id, String name) {
+        while(!this.connected){
+            this.connect();
+        }
+        try{
+            String sql = "SELECT * FROM \"Users\" WHERE \"Email\"='" + escapeString(email) + "' AND \"Username\"='"+escapeString(id)+ "' AND \"Name\"='"+escapeString(name)+"';";
+            ResultSet rs = stmt.executeQuery(sql);
+            String user = convertToJSON(rs);
+            user.substring(0, user.indexOf('[')); // delete password from json
+            user = user.substring(user.indexOf('[') + 1, user.indexOf(']'));
+            return user;
+        } catch (Exception ignored) {
+            return Utils.createResult("error", "Malformed Query");
+        }
+    }
+
+    public String registerWithFacebook(String email, String id, String name){
+        return this.register(id,name,name,email,"0","","");
+    }
 }
 
