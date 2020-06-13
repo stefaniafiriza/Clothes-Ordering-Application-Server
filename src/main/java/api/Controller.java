@@ -102,4 +102,21 @@ public class Controller {
         }
         return this.man.getShoppingCart(cartID);
     }
+
+    @GetMapping("/api/orderNextStep")
+    public String orderNextStep(@RequestParam String key, @RequestParam String orderID){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.orderNextStep(orderID);
+    }
+
+    @GetMapping("/api/getOrderByUserID")
+    public String getOrderByUserID(@RequestParam String key, @RequestParam String userID){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.getOrderByUserID(userID);
+    }
+
 }
