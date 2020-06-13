@@ -1,4 +1,5 @@
 import database.Manager;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -147,7 +148,7 @@ class ManagerTest {
             userCleanup(man);
             fail();
         }
-        String id = (String) json.get("Id");
+        String id = (String) json.get("ShoppingCartId");
 
         // actual test
         String result = man.addToCart(id,"1", "1");
@@ -167,6 +168,7 @@ class ManagerTest {
         // create the shopping cart
         man.createShoppingCartID((String)json.get("Id"));
         String id_json = man.getCartID("testuser");
+        id_json = id_json.substring(id_json.indexOf('[') + 1, id_json.indexOf(']'));
         JSONParser parser = new JSONParser();
         try {
             json = (JSONObject) parser.parse(id_json);
@@ -174,27 +176,28 @@ class ManagerTest {
         } catch (ParseException e) {
             fail();
         }
-        String id = (String) json.get("Id");
-
+        String id = (String) json.get("ShoppingCartId");
         String addResult = man.addToCart(id,"1", "2");
-        assertTrue(addResult.contains("successful"));
-
+        String addResults = man.addToCart(id,"2", "2");
         //actual test
         String result = man.removeFromCart(id, "1", "1");
         assertTrue(result.contains("successful"));
 
         String shoppingCart = man.getShoppingCart(id);
-
+        shoppingCart = shoppingCart.substring(shoppingCart.indexOf('[') + 2, shoppingCart.indexOf(']') - 1);
+        shoppingCart = shoppingCart.replaceAll("\\{", "[");
+        shoppingCart = shoppingCart.replaceAll("\\}", "]");
+        shoppingCart = "{" + shoppingCart + "}";
         try{
             json = (JSONObject) parser.parse(shoppingCart);
         } catch (ParseException e) {
             fail();
         }
 
-        assertEquals("1",((String[])json.get("Ammounts"))[0]);
+        assertEquals("1",((JSONArray) json.get("Ammounts")).get(0) + "");
 
         //clean up
-        man.deleteShopingCart((String)json.get("Id"));
+        man.deleteShopingCart(json.get("Id") + "");
 
         userCleanup(man);
     }
@@ -207,21 +210,24 @@ class ManagerTest {
 
         man.createShoppingCartID((String)json.get("Id"));
         String id_json = man.getCartID("testuser");
+        id_json = id_json.substring(id_json.indexOf('[') + 1, id_json.indexOf(']'));
         JSONParser parser = new JSONParser();
         try {
             json = (JSONObject) parser.parse(id_json);
         } catch (ParseException e) {
             fail();
         }
-        String id = (String) json.get("Id");
-        String addresult = man.addToCart(id,"1", "1");
-        assertTrue(addresult.contains("successful"));
+        String id = (String) json.get("ShoppingCartId");
+        man.addToCart(id,"1", "1");
+
         // actual test
         String result = man.order(id);
         assertTrue(result.contains("successful"));
+
         //clean up
 
         shoppingCartCleanUP(man, id);
+        man.deleteOrder(id);
     }
 
     void userCleanup(Manager man){

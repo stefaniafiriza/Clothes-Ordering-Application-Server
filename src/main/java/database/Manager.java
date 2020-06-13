@@ -7,8 +7,7 @@ import org.json.simple.parser.ParseException;
 
 import java.math.BigInteger;
 import java.sql.*;
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.*;
 
 import static database.Utils.convertToJSON;
 
@@ -143,6 +142,7 @@ public class Manager {
             stmt.executeUpdate(sql);
             return Utils.createResult("successful", String.format("%s", id));
         } catch (Exception e) {
+            try{ c.rollback(); }catch (SQLException ignored){}
             return Utils.createResult("error", "Malformed Query");
         }
 
@@ -189,6 +189,7 @@ public class Manager {
             stmt.executeUpdate(sql);
             return Utils.createResult("successful", "Created ShoppingCartID");
         } catch (Exception e) {
+            try{ c.rollback(); }catch (SQLException ignored){}
             return Utils.createResult("error", "Unable to update and create ShoppingCartID");
         }
     }
@@ -204,14 +205,15 @@ public class Manager {
             stmt.executeUpdate(sql);
             return Utils.createResult("successful", String.format("Added %s to the shopping cart %s", productID, cartID));
         } catch (Exception e) {
+            try{ c.rollback(); }catch (SQLException ignored){}
             return Utils.createResult("error", "Malformed Query");
         }
     }
 
-    private String linkedListToString(LinkedList<BigInteger> list){
+    private String linkedListToString(LinkedList<Long> list){
         StringBuilder str = new StringBuilder();
-        for (BigInteger bi : list) {
-            str.append(bi.toString()).append(",");
+        for (Long o : list) {
+            str.append(o + "").append(",");
         }
         str.deleteCharAt(str.length() - 1);
         return str.toString();
@@ -225,24 +227,31 @@ public class Manager {
             String sql = String.format("SELECT * FROM \"ShoppingBasket\" WHERE \"Id\"=%s", cartID);
             ResultSet rs = stmt.executeQuery(sql);
             if (rs.next()) {
-                LinkedList<BigInteger> cart = (LinkedList<BigInteger>) rs.getArray("Cart").getArray();
-                LinkedList<BigInteger> amounts = (LinkedList<BigInteger>) rs.getArray("Ammounts").getArray();
+                LinkedList<Long> cart = new LinkedList<Long>(Arrays.asList((Long[])rs.getArray("Cart").getArray()));
+                LinkedList<Long> amounts = new LinkedList<Long>(Arrays.asList((Long[])rs.getArray("Ammounts").getArray()));
+
                 int index;
-                for (index = 0; index < cart.size() + 1; index++) {
-                    if (index == cart.size())
-                        return Utils.createResult("error", "Could not find the product in the cart.");
-                    if (cart.get(index).toString().equals(productID))
+                boolean ok = false;
+                for (index = 0; index < cart.size(); index++) {
+                    if ((cart.get(index) + "").equals(productID))
+                    {
+                        ok = true;
                         break;
+                    }
+
                 }
-                BigInteger newAmount = amounts.get(index).subtract(new BigInteger(amount)) ;
-                if (newAmount.compareTo(BigInteger.valueOf(0)) <= 0) {
+                if(!ok)
+                    return Utils.createResult("error", "Could not find the product in the cart.");
+
+                long newAmount = amounts.get(index) - Long.parseLong(amount);
+                if (newAmount <= 0) {
                     amounts.remove(index);
                     cart.remove(index);
                 }else{
                     amounts.set(index, newAmount);
                 }
                 sql = String.format("UPDATE \"ShoppingBasket\"\n" +
-                        "\tSET \"Cart\"={%s}, \"Ammounts\"= {%s}\n" +
+                        "\tSET \"Cart\"='{%s}', \"Ammounts\"= '{%s}'\n" +
                         "\tWHERE \"Id\"=%s;", linkedListToString(cart), linkedListToString(amounts), cartID);
 
                 stmt.executeUpdate(sql);
@@ -250,6 +259,7 @@ public class Manager {
             }
             return Utils.createResult("error", String.format("Product %s is not in the shopping cart %s", productID, cartID));
         } catch (Exception e) {
+            try{ c.rollback(); }catch (SQLException ignored){}
             return Utils.createResult("error", "Malformed Query");
         }
     }
@@ -306,18 +316,18 @@ public class Manager {
             String sql = String.format("SELECT * FROM \"ShoppingBasket\" WHERE \"Id\"=%s", cartID);
             ResultSet rs = stmt.executeQuery(sql);
             if(rs.next()){
-                LinkedList<BigInteger> cart = (LinkedList<BigInteger>) rs.getArray("Cart").getArray();
-                LinkedList<BigInteger> amounts = (LinkedList<BigInteger>) rs.getArray("Ammounts").getArray();
-                BigInteger user = BigInteger.valueOf(rs.getInt("User"));
+                LinkedList<Long> cart = new LinkedList<Long>(Arrays.asList((Long[])rs.getArray("Cart").getArray()));
+                LinkedList<Long> amounts = new LinkedList<Long>(Arrays.asList((Long[])rs.getArray("Ammounts").getArray()));
+                BigInteger user = BigInteger.valueOf(rs.getInt("UserId"));
 
-                sql = String.format("INSERT INTO public.\"Orders\"(\n" +
-                        "\t\"Id\", \"Status\", \"UserID\", \"Cart\", \"Ammounts\") VALUES (%s, '%s', '%s', '%s', '%s');",
+                sql = String.format("INSERT INTO public.\"Order\"(\n" +
+                        "\t\"Id\", \"Status\", \"UserID\", \"Cart\", \"Ammounts\") VALUES (%s, '%s', '%s', '{%s}', '{%s}');",
                         cartID, "0", user.toString(), linkedListToString(cart), linkedListToString(amounts));
 
                 stmt.executeUpdate(sql);
 
                 sql = String.format("UPDATE \"ShoppingBasket\"\n" +
-                        "\tSET \"Cart\"={}, \"Ammounts\"= {}\n" +
+                        "\tSET \"Cart\"='{}', \"Ammounts\"='{}'\n" +
                         "\tWHERE \"Id\"=%s;", cartID);
                 stmt.executeUpdate(sql);
                 return Utils.createResult("successful", String.format("Ordered %s", cartID));
@@ -412,6 +422,21 @@ public class Manager {
 
         }
         return Utils.createResult("error", "Malformed Query");
+    }
+
+    // Used only in tests
+    public boolean deleteOrder(String orderID){
+        while(!this.connected){
+            this.connect();
+        }
+        try{
+            String sql = "DELETE FROM \"Order\" WHERE \"Id\"='" + escapeString(orderID) + "';";
+            stmt.executeUpdate(sql);
+            return true;
+        } catch (SQLException throwables) {
+            try{ c.rollback(); }catch (SQLException ignored){}
+        }
+        return false;
     }
 }
 
