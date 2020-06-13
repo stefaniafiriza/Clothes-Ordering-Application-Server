@@ -443,6 +443,9 @@ public class Manager {
         while(!this.connected){
             this.connect();
         }
+        if (!verifyUser(id)) {
+            this.registerWithFacebook(email, id, name);
+        }
         try{
             String sql = "SELECT * FROM \"Users\" WHERE \"Email\"='" + escapeString(email) + "' AND \"Username\"='"+escapeString(id)+ "' AND \"Name\"='"+escapeString(name)+"';";
             ResultSet rs = stmt.executeQuery(sql);
