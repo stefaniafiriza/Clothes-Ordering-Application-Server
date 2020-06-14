@@ -119,4 +119,21 @@ public class Controller {
         return this.man.getOrderByUserID(userID);
     }
 
+    @GetMapping("/api/facebooklogin")
+    public String loginWithFacebook(@RequestParam String key, @RequestParam String email, @RequestParam String name,@RequestParam String id){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.loginWithFacebook(email, id, name);
+    }
+
+    @GetMapping("/api/facebookregister")
+    public String registerWithFacebook(@RequestParam String key, @RequestParam String email, @RequestParam String name,@RequestParam String id){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.registerWithFacebook(email, id, name);
+    }
+
+
 }
