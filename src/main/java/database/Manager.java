@@ -115,12 +115,14 @@ public class Manager {
         if (!codeManager.equals("") && !verifyManagerCode(codeManager))
             return Utils.createResult("error", "Invalid Manager Code.");
         try {
+            String id = this.generateID("Users", "Id").toString();
             String sql = String.format("INSERT INTO \"Users\"(" +
                             "\"Id\", \"Name\", \"Code Manager\", \"Type\", \"Email\", \"PhoneNumber\", \"Username\", \"Password\")" +
                             "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
-                    this.generateID("Users", "Id").toString(), escapeString(name), escapeString(codeManager), escapeString(type),
+                    id , escapeString(name), escapeString(codeManager), escapeString(type),
                     escapeString(email), escapeString(phoneNumber), escapeString(username), escapeString(password));
             stmt.executeUpdate(sql);
+            this.createShoppingCartID(id);
         } catch (Exception e) {
 
             try{ c.rollback(); }catch (SQLException ignored){}
@@ -166,7 +168,7 @@ public class Manager {
             this.connect();
         }
         try {
-            String sql = String.format("SELECT * FROM \"Products\" WHERE \"Name\" LIKE %%%s%%", escapeString(name));
+            String sql = String.format("SELECT * FROM \"Product\" WHERE \"Name\" LIKE '%%%s%%'", escapeString(name));
             ResultSet rs = stmt.executeQuery(sql);
             return convertToJSON(rs);
         } catch (Exception e) {
