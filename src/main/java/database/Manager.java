@@ -155,7 +155,7 @@ public class Manager {
             this.connect();
         }
         try {
-            String sql = "SELECT * FROM \"PRODUCTS\";";
+            String sql = "SELECT * FROM \"PRODUCT\";";
             ResultSet rs = stmt.executeQuery(sql);
             return convertToJSON(rs);
         } catch (Exception e) {
