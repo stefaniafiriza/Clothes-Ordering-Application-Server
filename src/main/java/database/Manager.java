@@ -155,7 +155,7 @@ public class Manager {
             this.connect();
         }
         try {
-            String sql = "SELECT * FROM \"PRODUCT\";";
+            String sql = "SELECT * FROM \"Product\";";
             ResultSet rs = stmt.executeQuery(sql);
             return convertToJSON(rs);
         } catch (Exception e) {
@@ -217,7 +217,8 @@ public class Manager {
         for (Long o : list) {
             str.append(o + "").append(",");
         }
-        str.deleteCharAt(str.length() - 1);
+        if(str.length()> 0)
+            str.deleteCharAt(str.length() - 1);
         return str.toString();
     }
 
@@ -422,7 +423,7 @@ public class Manager {
 
 
         } catch (SQLException ignored) {
-
+            ignored.printStackTrace();
         }
         return Utils.createResult("error", "Malformed Query");
     }
