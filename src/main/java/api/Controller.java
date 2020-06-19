@@ -135,5 +135,15 @@ public class Controller {
         return this.man.registerWithFacebook(email, id, name);
     }
 
+    @GetMapping("/api/deleteProduct")
+    public String deleteProduct(@RequestParam String key, @RequestParam String name){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        if(this.man.deleteProduct(name))
+            return Utils.createResult("successful", "Deleted product");
+        return  Utils.createResult("error", "An error has occured");
+    }
+
 
 }
