@@ -356,7 +356,8 @@ public class Manager {
         }
         return false;
     }
-    // Used only in tests
+
+
     public boolean deleteProduct(String name){
         while(!this.connected){
             this.connect();
