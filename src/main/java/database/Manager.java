@@ -15,6 +15,7 @@ public class Manager {
     Connection c;
     Statement stmt;
     boolean connected = false;
+    public static boolean ADD_TO_CART_DISABLED = false;
 
     public Manager() {
         this.connect();
@@ -197,6 +198,12 @@ public class Manager {
     }
 
     public String addToCart(String cartID, String productID, String amount) {
+
+        if(ADD_TO_CART_DISABLED){
+            return Utils.createResult("error", "This api has been disabled.");
+        }
+
+
         while (!this.connected) {
             this.connect();
         }
@@ -495,6 +502,11 @@ public class Manager {
             try{ c.rollback(); }catch (SQLException ignored){}
         }
         return Utils.createResult("error", "Malformed Query.");
+    }
+
+    public String toggleAddToCart(){
+        ADD_TO_CART_DISABLED = !ADD_TO_CART_DISABLED;
+        return Utils.createResult("successful", "The api has been " + (ADD_TO_CART_DISABLED ? "disabled." : "enabled."));
     }
 }
 
