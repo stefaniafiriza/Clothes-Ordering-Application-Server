@@ -155,4 +155,12 @@ public class Controller {
         return this.man.editProduct(id, name, type,size, price, stock, description);
     }
 
+    @GetMapping("/api/getOrders")
+    public String getOrders(@RequestParam String key){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.getOrders();
+    }
+
 }
