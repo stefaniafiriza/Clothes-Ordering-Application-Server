@@ -163,4 +163,12 @@ public class Controller {
         return this.man.getOrders();
     }
 
+    @GetMapping("/api/toggleAddToCart")
+    public String toggleAddToCart(@RequestParam String key){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.toggleAddToCart();
+    }
+
 }
