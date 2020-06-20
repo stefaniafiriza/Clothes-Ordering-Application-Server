@@ -277,13 +277,13 @@ public class Manager {
 
             ResultSet rs = stmt.executeQuery(sql);
             String json = Utils.convertToJSON(rs);
-
+            json = json.substring(json.indexOf('[') + 1, json.indexOf(']'));
             JSONParser parser = new JSONParser();
             JSONObject jo = (JSONObject) parser.parse(json);
 
             int status = Integer.parseInt((String)jo.get("Status"));
 
-            sql = String.format("UPDATE \"Orders\" SET \"Status\" = '%s' WHERE \"Id\"=%s", status+1, orderID);
+            sql = String.format("UPDATE \"Order\" SET \"Status\" = '%s' WHERE \"Id\"=%s", status+1, orderID);
             stmt.executeUpdate(sql);
 
             return Utils.createResult("successful", "Updated order");
@@ -341,6 +341,21 @@ public class Manager {
             try{ c.rollback(); }catch (SQLException ignored){}
             return Utils.createResult("error", "Malformed Query");
         }
+    }
+
+
+    public String getOrders(){
+        while (!this.connected) {
+            this.connect();
+        }
+        try {
+            String sql = "SELECT * FROM \"Order\";";
+            ResultSet rs = stmt.executeQuery(sql);
+            return Utils.convertToJSON(rs);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return Utils.createResult("error", "Malformed Query");
     }
 
     // Used only in tests
