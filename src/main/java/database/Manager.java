@@ -465,5 +465,21 @@ public class Manager {
     public String registerWithFacebook(String email, String id, String name){
         return this.register(id,name,name,email,"0","","");
     }
+
+    public String editProduct(String id, String name, String type, String size, String price, String stock, String description){
+        while(!this.connected){
+            this.connect();
+        }
+        try{
+            String sql = String.format("UPDATE public.\"Product\"\n" +
+                    "\tSET \"Name\"='%s', \"Size\"='%s', \"Type\"='%s', \"Price\"='%s', \"Stock\"='%s', \"Description\"='%s'\n" +
+                    "\tWHERE \"Id\"=%s;", name, size,type, price, stock, description, id);
+            stmt.executeUpdate(sql);
+            return Utils.createResult("successful", "Edited the item.");
+        }catch (Exception e){
+            try{ c.rollback(); }catch (SQLException ignored){}
+        }
+        return Utils.createResult("error", "Malformed Query.");
+    }
 }
 
