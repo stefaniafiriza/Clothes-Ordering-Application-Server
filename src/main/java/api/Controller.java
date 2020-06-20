@@ -144,6 +144,15 @@ public class Controller {
             return Utils.createResult("successful", "Deleted product");
         return  Utils.createResult("error", "An error has occured");
     }
-
+    @GetMapping("/api/editProduct")
+    public String editProduct(@RequestParam String key,@RequestParam String id,
+                              @RequestParam String name,@RequestParam String type,
+                              @RequestParam String size,@RequestParam String price,
+                              @RequestParam String stock,@RequestParam String description){
+        if(!key.equals(Utils.API_KEY)){
+            return Utils.createResult("error", "API Key is not valid.");
+        }
+        return this.man.editProduct(id, name, type,size, price, stock, description);
+    }
 
 }
